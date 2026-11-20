@@ -1,1 +1,434 @@
 # fishing-roulette
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#102c39">
+<title>Fishing Roulette PRO</title>
+
+<style>
+:root{
+--navy:#102c39;
+--teal:#1c5260;
+--paper:#f3f7f7;
+--ink:#16313a;
+--muted:#64777d;
+--line:#d9e3e5;
+}
+*{box-sizing:border-box}
+body{
+margin:0;
+background:var(--paper);
+color:var(--ink);
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+header{
+background:linear-gradient(145deg,#102c39,#1c5260);
+color:white;
+padding:26px 18px 22px;
+text-align:center;
+border-radius:0 0 24px 24px;
+}
+header .fish{font-size:38px}
+h1{font-size:24px;letter-spacing:1px;margin:6px 0}
+header p{margin:0;color:#c5d9de;font-size:12px;letter-spacing:1.4px}
+main{max-width:680px;margin:auto;padding:16px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px}
+button,select,input{font:inherit}
+button{border:0;border-radius:13px;padding:13px 12px;font-weight:700;cursor:pointer}
+.tab{background:#e1eaec;color:#36515a}
+.tab.active{background:var(--navy);color:white}
+.panel,.result,.lure-card{
+background:white;
+border:1px solid var(--line);
+border-radius:18px;
+padding:15px;
+margin-bottom:13px;
+}
+.primary{
+width:100%;
+background:var(--navy);
+color:white;
+font-size:16px;
+padding:16px;
+margin-top:10px;
+}
+.secondary{background:#e8eff0;color:#25434c}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}
+select,input[type=text],input[type=number]{
+width:100%;
+padding:12px;
+border:1px solid var(--line);
+border-radius:11px;
+background:white;
+color:var(--ink);
+}
+.small{font-size:12px;color:var(--muted)}
+.result{text-align:center;background:#eaf3f1;border-color:#c8ded8}
+.result .emoji{font-size:46px}
+.result h2{font-size:20px;margin:5px 0}
+.result p{margin:5px 0;color:#536a70}
+.details{
+display:flex;
+justify-content:space-between;
+border-top:1px solid #d3e3df;
+padding:9px 0;
+font-size:13px;
+text-align:left;
+gap:12px;
+}
+.collection-head{
+display:flex;
+align-items:center;
+justify-content:space-between;
+margin:18px 2px 10px;
+}
+.lure-card{display:flex;gap:12px;align-items:center;padding:10px}
+.thumb{
+width:64px;height:64px;border-radius:12px;
+background:#edf3f4;display:grid;place-items:center;
+overflow:hidden;flex:none;font-size:30px;
+}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.lure-info{flex:1;min-width:0}
+.lure-info strong{display:block;font-size:14px}
+.lure-info span{font-size:12px;color:var(--muted)}
+.delete{padding:8px;background:#f7e9e8;color:#8a3832}
+form{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+form .wide{grid-column:1/-1}
+input[type=file]{width:100%;font-size:12px}
+.history{font-size:13px;color:var(--muted);line-height:1.8}
+footer{text-align:center;color:#829398;font-size:11px;padding:15px}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="fish">🎣</div>
+<h1>FISHING ROULETTE PRO</h1>
+<p>YOUR LURES • YOUR CHOICE • YOUR FISHING</p>
+</header>
+
+<main>
+
+<div class="tabs">
+<button class="tab active" data-mode="roulette">🎡 Roulette</button>
+<button class="tab" data-mode="dice">🎲 Dé</button>
+<button class="tab" data-mode="smart">🧠 Smart</button>
+</div>
+
+<section class="panel" id="smartOptions" hidden>
+<label for="place">Lieu de pêche</label>
+<select id="place">
+<option>Plage</option>
+<option>Rochers</option>
+<option>Port</option>
+<option>Canal</option>
+<option>Eau douce</option>
+</select>
+
+<label for="moment">Moment</label>
+<select id="moment">
+<option>Matin</option>
+<option>Journée</option>
+<option>Soir</option>
+<option>Nuit</option>
+</select>
+
+<label for="water">État de l'eau</label>
+<select id="water">
+<option>Calme / claire</option>
+<option>Agitée</option>
+<option>Trouble</option>
+</select>
+</section>
+
+<section class="panel" style="text-align:center">
+<div style="font-size:30px" id="modeIcon">🎡</div>
+<strong id="modeTitle">Roulette aléatoire</strong>
+<p class="small" id="modeDesc">Tous les leurres de ta collection peuvent être tirés.</p>
+<button class="primary" id="draw">LANCER LA ROULETTE</button>
+</section>
+
+<section class="result" id="result" hidden aria-live="polite">
+<div class="emoji" id="rEmoji">🐟</div>
+<h2 id="rName"></h2>
+<p id="rType"></p>
+<div class="details"><span>Poids / taille</span><b id="rWeight"></b></div>
+<div class="details"><span>Couleur</span><b id="rColor"></b></div>
+<div class="details"><span>Lieu conseillé</span><b id="rPlaces"></b></div>
+<button class="secondary" id="again" style="width:100%;margin-top:10px">🔄 Rejouer</button>
+</section>
+
+<div class="collection-head">
+<strong>Ma collection</strong>
+<span class="small" id="count"></span>
+</div>
+
+<div id="collection"></div>
+
+<section class="panel">
+<strong>➕ Ajouter un leurre</strong>
+
+<form id="addForm">
+<input class="wide" id="name" type="text" placeholder="Nom du leurre" required>
+<input id="type" type="text" placeholder="Type (jig, minnow...)">
+<input id="weight" type="text" placeholder="Poids / taille">
+<input id="color" type="text" placeholder="Couleur">
+<input id="places" class="wide" type="text" placeholder="Lieux (Plage, Port, Rochers...)">
+
+<label class="wide">
+Photo du leurre (facultatif)
+<input id="photo" type="file" accept="image/*">
+</label>
+
+<button class="primary wide" type="submit">AJOUTER À MA COLLECTION</button>
+</form>
+
+<p class="small">
+Tes leurres et photos sont enregistrés dans le stockage de ce navigateur sur ton téléphone.
+</p>
+</section>
+
+<section class="panel">
+<strong>Historique des tirages</strong>
+<div id="history" class="history">Aucun tirage pour le moment.</div>
+<button class="secondary" id="clearHistory" style="margin-top:8px">Effacer l'historique</button>
+</section>
+
+<footer>Fishing Roulette PRO • Version personnelle</footer>
+
+</main>
+
+<script>
+(()=>{
+"use strict";
+
+const defaults=[
+{name:"Caperlan Saxton 110F",type:"Poisson nageur",weight:"110 mm",color:"Blanc",places:["Plage","Rochers","Port","Canal"],emoji:"🐟"},
+{name:"Biastos Assist",type:"Jig métallique",weight:"20 g",color:"Hareng rose",places:["Plage","Rochers","Port"],emoji:"⚡"},
+{name:"Biastos Aji",type:"Jig métallique",weight:"20 g",color:"Aji",places:["Plage","Rochers","Port","Canal"],emoji:"⚡"},
+{name:"Black Minnow Hunthouse",type:"Leurre souple",weight:"25 g • 100 mm",color:"008 marron",places:["Plage","Rochers","Port","Canal"],emoji:"🐠"},
+{name:"Turlutte",type:"Egi / Calamar",weight:"À compléter",color:"À compléter",places:["Plage","Rochers","Port"],emoji:"🦑"},
+{name:"Jig métallique libre",type:"Jig",weight:"À compléter",color:"À compléter",places:["Plage","Rochers","Port"],emoji:"⚡"}
+];
+
+function readStorage(key,fallback){
+try{
+const value=JSON.parse(localStorage.getItem(key));
+return value===null?fallback:value;
+}catch(error){return fallback;}
+}
+
+let lures=readStorage("frp-lures",defaults);
+if(!Array.isArray(lures)||lures.length===0) lures=defaults.slice();
+
+let mode="roulette";
+let drawHistory=readStorage("frp-history",[]);
+if(!Array.isArray(drawHistory)) drawHistory=[];
+
+function saveLures(){
+try{
+localStorage.setItem("frp-lures",JSON.stringify(lures));
+}catch(error){
+alert("Stockage plein. Essaie une photo plus petite.");
+}
+}
+
+function renderHistory(){
+const el=document.getElementById("history");
+el.textContent=drawHistory.length
+?drawHistory.slice(0,8).map((x,i)=>(i+1)+". "+x).join(" • ")
+:"Aucun tirage pour le moment.";
+}
+
+function render(){
+document.getElementById("count").textContent=lures.length+" leurre(s)";
+const root=document.getElementById("collection");
+root.innerHTML="";
+
+lures.forEach((l,i)=>{
+const card=document.createElement("div");
+card.className="lure-card";
+
+const thumb=document.createElement("div");
+thumb.className="thumb";
+
+if(l.photo){
+const im=document.createElement("img");
+im.src=l.photo;
+thumb.appendChild(im);
+}else{
+thumb.textContent=l.emoji||"🎣";
+}
+
+const info=document.createElement("div");
+info.className="lure-info";
+
+const strong=document.createElement("strong");
+strong.textContent=l.name;
+
+const span=document.createElement("span");
+span.textContent=(l.type||"Leurre")+" • "+(l.weight||"Poids à compléter");
+
+info.append(strong,span);
+
+const del=document.createElement("button");
+del.className="delete";
+del.textContent="✕";
+del.setAttribute("aria-label","Supprimer "+l.name);
+
+del.addEventListener("click",()=>{
+if(confirm("Supprimer "+l.name+" ?")){
+lures.splice(i,1);
+saveLures();
+render();
+}
+});
+
+card.append(thumb,info,del);
+root.appendChild(card);
+});
+
+renderHistory();
+}
+
+function pick(){
+let pool=lures;
+
+if(mode==="smart"){
+const place=document.getElementById("place").value;
+pool=lures.filter(l=>(l.places||[]).includes(place));
+if(!pool.length) pool=lures;
+}
+
+if(!pool.length){
+alert("Ajoute au moins un leurre !");
+return;
+}
+
+const item=pool[Math.floor(Math.random()*pool.length)];
+
+document.getElementById("rEmoji").textContent=item.emoji||"🎣";
+document.getElementById("rName").textContent=item.name;
+document.getElementById("rType").textContent=item.type||"Type non précisé";
+document.getElementById("rWeight").textContent=item.weight||"À compléter";
+document.getElementById("rColor").textContent=item.color||"À compléter";
+document.getElementById("rPlaces").textContent=(item.places||[]).join(", ")||"À compléter";
+
+document.getElementById("result").hidden=false;
+
+drawHistory.unshift(item.name+" ("+(mode==="smart"?"Smart":mode==="dice"?"Dé":"Roulette")+")");
+drawHistory=drawHistory.slice(0,8);
+
+try{
+localStorage.setItem("frp-history",JSON.stringify(drawHistory));
+}catch(error){}
+
+renderHistory();
+}
+
+function updateMode(m){
+mode=m;
+
+document.querySelectorAll(".tab").forEach(b=>{
+b.classList.toggle("active",b.dataset.mode===m);
+});
+
+document.getElementById("smartOptions").hidden=m!=="smart";
+
+document.getElementById("modeIcon").textContent=
+m==="roulette"?"🎡":m==="dice"?"🎲":"🧠";
+
+document.getElementById("modeTitle").textContent=
+m==="roulette"?"Roulette aléatoire":
+m==="dice"?"Dé de pêche":"Mode intelligent";
+
+document.getElementById("modeDesc").textContent=
+m==="smart"?"Le tirage filtre selon le lieu choisi.":
+m==="dice"?"Le dé choisit un leurre au hasard.":
+"Tous les leurres de ta collection peuvent être tirés.";
+
+document.getElementById("draw").textContent=
+m==="roulette"?"LANCER LA ROULETTE":
+m==="dice"?"LANCER LE DÉ":"CHOISIR MON LEURRE";
+
+document.getElementById("result").hidden=true;
+}
+
+document.querySelectorAll(".tab").forEach(b=>{
+b.addEventListener("click",()=>updateMode(b.dataset.mode));
+});
+
+document.getElementById("draw").addEventListener("click",pick);
+document.getElementById("again").addEventListener("click",pick);
+
+document.getElementById("clearHistory").addEventListener("click",()=>{
+drawHistory=[];
+localStorage.removeItem("frp-history");
+renderHistory();
+});
+
+document.getElementById("addForm").addEventListener("submit",async e=>{
+e.preventDefault();
+
+const name=document.getElementById("name").value.trim();
+if(!name){
+alert("Entre le nom du leurre.");
+return;
+}
+
+const file=document.getElementById("photo").files[0];
+let photo="";
+
+if(file){
+if(file.size>1500000){
+alert("Photo trop grande. Choisis une photo de moins de 1,5 Mo.");
+return;
+}
+
+try{
+photo=await new Promise((resolve,reject)=>{
+const reader=new FileReader();
+reader.onload=()=>resolve(reader.result);
+reader.onerror=()=>reject(reader.error);
+reader.readAsDataURL(file);
+});
+}catch(error){
+alert("Impossible de lire cette photo.");
+return;
+}
+}
+
+const places=document.getElementById("places").value
+.split(",").map(x=>x.trim()).filter(Boolean);
+
+lures.push({
+name:name,
+type:document.getElementById("type").value.trim(),
+weight:document.getElementById("weight").value.trim(),
+color:document.getElementById("color").value.trim(),
+places:places,
+photo:photo,
+emoji:"🎣"
+});
+
+saveLures();
+render();
+e.target.reset();
+
+alert("Le leurre a été ajouté à ta collection !");
+});
+
+render();
+updateMode("roulette");
+
+})();
+</script>
+
+</body>
+</html>
